@@ -1,0 +1,16 @@
+# Ignore environment-specific settings
+.envs
+
+# Ignore Python byte code files, virtual environment folders, and other Django-specific files
+*.pyc
+__pycache__/
+*.sqlite3
+venv/
+*.log
+
+# Ignore local development settings
+local_settings.py
+
+# Ignore IDE-specific files
+.vscode/
+*.idea/

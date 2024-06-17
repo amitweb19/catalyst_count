@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>{% block title %}Catalyst Count{% endblock %}</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+
+    <style>
+        .alert-content {
+            display: flex;
+            align-items: center;
+        }
+        .alert svg {
+            margin-right: 10px; /* Space between the icon and text */
+        }
+
+        .nav-item:hover .nav-link {
+            color: #007bff; /* Blue color on hover */
+        }
+        .nav-item.active .nav-link {
+            color: #28a745; /* Green color for active (selected) item */
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <a class="navbar-brand" href="/">Catalyst Count</a>
+
+        <ul class="navbar-nav ml-auto">
+            {% if user.is_authenticated %}
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'upload_data:upload_data' %}">Upload Data</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'query_builder:query_builder' %}">Query Builder</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'users:users' %}">Users</a>
+                </li>
+            {% else %}
+
+            {% endif %}
+        </ul>
+
+        <div class="collapse navbar-collapse" id="navbarNav">
+            
+            <ul class="navbar-nav ml-auto">
+                {% if user.is_authenticated %}
+                <li class="nav-item">
+                    <form action="{% url 'logout' %}" method="post" class="form-inline">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-primary">Logout</button>
+                    </form>
+                </li>
+                {% else %}
+
+                {% endif %}
+            </ul>
+        </div>
+    </nav>
+    <div class="container">
+        {% block content %}
+        {% endblock %}
+    </div>
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.2/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script>
+        // Script to handle active states
+        $(document).ready(function(){
+            // Get current URL path and assign 'active' class based on it
+            var currentUrl = window.location.pathname;
+            $('.navbar-nav li').each(function(){
+                var href = $(this).find('a').attr('href');
+                if (currentUrl.includes(href)) {
+                    $(this).addClass('active');
+                }
+            });
+        });
+    </script>
+
+    <script>
+        // Close alerts after some time
+        window.setTimeout(function() {
+            $(".alert").fadeTo(500, 0).slideUp(500, function(){
+                $(this).remove();
+            });
+        }, 4000); // 4 seconds
+    </script>
+</body>
+</html>

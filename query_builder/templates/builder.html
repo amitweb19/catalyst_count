@@ -1,0 +1,179 @@
+{% extends 'base.html' %}
+
+{% block title %}
+   Query Builder
+{% endblock %}
+
+{% block content %}
+
+    <script>
+        $(document).ready(function() {
+            // Function to populate dropdowns with fetched options
+            function populateDropdown(selector, options) {
+                var dropdown = $(selector);
+                dropdown.empty();
+                $.each(options, function(index, value) {
+                    dropdown.append($('<option></option>').attr('value', value).text(value));
+                });
+            }
+
+            // AJAX request to fetch filter options
+            $.ajax({
+                url: "{% url 'company-filter-options' %}",
+                dataType: 'json',
+                success: function(data) {
+                    populateDropdown('#industry-dropdown', data.industry);
+                    populateDropdown('#year-dropdown', data.year_founded);
+                    populateDropdown('#locality-dropdown', data.locality);
+                    populateDropdown('#country-dropdown', data.country);
+                    
+                    // Setting range for current employees dropdown
+                    $('#current-employee-from').attr('placeholder', data.current_employee_estimate_from);
+                    $('#current-employee-to').attr('placeholder', data.current_employee_estimate_to);
+
+                    // Setting range for total employees dropdown
+                    $('#total-employee-from').attr('placeholder', data.total_employee_estimate_from);
+                    $('#total-employee-to').attr('placeholder', data.total_employee_estimate_to);
+                }
+            });
+        });
+    </script>
+    <script>
+        $(document).ready(function() {
+            $('#id_country').change(function() {
+                var countryId = $(this).val();
+                if (countryId) {
+                    $.ajax({
+                        url: '/get-states/',
+                        type: 'GET',
+                        data: { 'country_id': countryId },
+                        success: function(data) {
+                            $('#id_state').empty();
+                            $('#id_city').empty();
+                            $('#id_state').append('<option value="">Select State</option>');
+                            $.each(data, function(index, state) {
+                                $('#id_state').append('<option value="' + state.id + '">' + state.name + '</option>');
+                            });
+                        }
+                    });
+                } else {
+                    $('#id_state').empty();
+                    $('#id_city').empty();
+                }
+            });
+
+            $('#id_state').change(function() {
+                var stateId = $(this).val();
+                if (stateId) {
+                    $.ajax({
+                        url: '/get-cities/',
+                        type: 'GET',
+                        data: { 'state_id': stateId },
+                        success: function(data) {
+                            $('#id_city').empty();
+                            $('#id_city').append('<option value="">Select City</option>');
+                            $.each(data, function(index, city) {
+                                $('#id_city').append('<option value="' + city.id + '">' + city.name + '</option>');
+                            });
+                        }
+                    });
+                } else {
+                    $('#id_city').empty();
+                }
+            });
+        });
+    </script>
+    <div class="container mt-3">
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <svg class="bi flex-shrink-0 me-2" width="24" height="24" role="img" aria-label="Success:">
+                <use xlink:href="#check-circle-fill"/>
+                <symbol id="check-circle-fill" fill="currentColor" viewBox="0 0 16 16">
+                    <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM6.97 11.03a.75.75 0 0 0 1.08.02l3.992-4.99a.75.75 0 1 0-1.08-1.04L7.477 9.58 6.525 8.525a.75.75 0 0 0-1.05 1.05l1.5 1.5z"/>
+                </symbol>
+            </svg>
+                342 records found for the query.
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+    </div>
+    <section>
+        
+        <div class="container mt-4">
+            <h2>Query Builder</h2>
+            <form id="filterForm"  action="{% url 'filtered-companies' %}" method="GET">
+              <div class="form-row">
+                <div class="form-group col-md-4">
+                  <input type="text" class="form-control" id="keyword" placeholder="Keyword">
+                </div>
+                <div class="form-group col-md-4">
+                  <select id="industry" class="form-control">
+                    <option selected>Industry</option>
+                    {% for industry in industries %}
+                        <option value="{{ industry }}">{{ industry }}</option>
+                    {% endfor %}
+                  </select>
+                </div>
+                <div class="form-group col-md-4">
+                  <select id="yearFounded" class="form-control">
+                    <option selected>Year Founded</option>
+                    {% for year in years_founded %}
+                        <option value="{{ year }}">{{ year }}</option>
+                    {% endfor %}
+                  </select>
+                </div>
+                <div class="form-group col-md-4">
+                  <select id="id_city" name="city" class="form-control">
+                    <option value="">City</option>
+                  </select>
+                </div>
+                <div class="form-group col-md-4">
+                  <select id="id_state" name="state" class="form-control">
+                    <option  value="">State</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group col-md-4">
+                  <select  id="id_country" name="country" class="form-control">
+                    <option value="">Country</option>
+                    {% for country in countries %}
+                        <option value="{{ country.id }}">{{ country.name }}</option>
+                    {% endfor %}
+                  </select>
+                </div>
+                <div class="form-group col-md-4">
+                  <input type="number" class="form-control" id="current_employee_estimate_from" name="current_employee_estimate_from" placeholder="Employees(From)">
+                </div>
+                <div class="form-group col-md-4">
+                  <input type="number" class="form-control" id="current_employee_estimate_to" name="current_employee_estimate_to" placeholder="Employees(To)">
+                </div>
+                <div class="form-group col-md-2 align-self-end">
+                  <button type="button" class="btn btn-primary btn-block" onclick="queryData()">Query Data</button>
+                </div>
+                <div class="form-group col-md-2 align-self-end">
+                  <button type="button" class="btn btn-secondary btn-block" onclick="resetFilters()">Reset</button>
+                </div>
+              </div>
+            </form>
+          </div>
+          
+          <!-- Bootstrap JS and dependencies (optional for functionality beyond basic form) -->
+          <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
+          
+          <!-- JavaScript for handling form submission and reset -->
+          <script>
+            function queryData() {
+              // Handle query data logic here
+              console.log('Query data');
+              // Example: Fetch data using AJAX or perform filtering
+            }
+          
+            function resetFilters() {
+              document.getElementById("filterForm").reset();
+              // Additional logic to reset any custom UI elements or data
+              console.log('Filters reset');
+            }
+          </script>
+    </section>
+{% endblock %}
